@@ -1,6 +1,8 @@
 #include "editcoursedetails.h"
 #include "qabstractitemview.h"
 #include "qcompleter.h"
+#include "qmessagebox.h"
+#include "qsqlerror.h"
 #include "qsqlquery.h"
 #include "ui_editcoursedetails.h"
 
@@ -121,6 +123,40 @@ void EditCourseDetails::on_buttonBox_accepted()
     query.addBindValue(grade);
     query.addBindValue(old_course_code);
     query.exec();
+
+    if(query.lastError().isValid()){
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Error");
+        msgBox.setText(query.lastError().text());
+        msgBox.setIcon(QMessageBox::Critical);
+
+        // Apply style sheet
+        msgBox.setStyleSheet(
+            "QMessageBox { "
+            "   background-color: #2b2b2b; "
+            "   color: white; "
+            "}"
+            "QMessageBox QLabel { "
+            "   color: white; "
+            "   font-size: 14px; "
+            "}"
+            "QMessageBox QPushButton { "
+            "   background-color: #0078d4; "
+            "   color: white; "
+            "   border: none; "
+            "   padding: 8px 16px; "
+            "   border-radius: 4px; "
+            "   min-width: 80px; "
+            "}"
+            "QMessageBox QPushButton:hover { "
+            "   background-color: #106ebe; "
+            "}"
+            );
+
+        msgBox.exec();
+
+        reject();
+    }
 }
 
 

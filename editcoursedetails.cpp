@@ -6,6 +6,8 @@
 #include "qsqlquery.h"
 #include "ui_editcoursedetails.h"
 
+#include <QMouseEvent>
+
 EditCourseDetails::EditCourseDetails(QString course_code ,QString semester, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::EditCourseDetails)
@@ -73,6 +75,9 @@ EditCourseDetails::EditCourseDetails(QString course_code ,QString semester, QWid
     populateCoursesCombobox();
     int index = ui->comboBox->findText(course_code);
     ui->comboBox->setCurrentIndex(index);
+
+    ui->comboBox->installEventFilter(this);
+    ui->comboBox->lineEdit()->installEventFilter(this);
 
     QSqlQuery query;
     query.prepare("Select is_current_course, is_planned_course, is_done_course from course_planning "
@@ -284,4 +289,22 @@ std::tuple<QString, QString> EditCourseDetails::getCourseStatus(bool is_done, bo
 void EditCourseDetails::checkCurrentCourse(QString course_code)
 {
     qDebug() << course_code;
+}
+
+bool EditCourseDetails::eventFilter(QObject *obj, QEvent *event) // to show list after click anywhere on the combobox
+{
+    // Check if the event is from either the combobox or its line edit
+    if ((obj == ui->comboBox || obj == ui->comboBox->lineEdit()) &&
+        event->type() == QEvent::MouseButtonPress) {
+
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() == Qt::LeftButton) {
+            // Show the dropdown when clicking anywhere on the combobox or line edit
+            ui->comboBox->showPopup();
+            return true; // Event handled - prevent default processing
+        }
+    }
+
+    // Pass the event to the parent class for normal processing
+    return QWidget::eventFilter(obj, event);
 }

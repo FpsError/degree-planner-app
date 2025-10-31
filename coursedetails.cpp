@@ -7,6 +7,7 @@
 #include <QCompleter>
 #include <QAbstractItemView>
 #include <QMessageBox>
+#include <QMouseEvent>
 
 CourseDetails::CourseDetails(QString semester, QWidget *parent)
     : QDialog(parent)
@@ -70,7 +71,8 @@ CourseDetails::CourseDetails(QString semester, QWidget *parent)
         height: 0px;
     }
 )");
-
+    ui->comboBox->installEventFilter(this);
+    ui->comboBox->lineEdit()->installEventFilter(this);
     populateCoursesCombobox();
 }
 
@@ -200,4 +202,20 @@ int CourseDetails::getCourseGrade(){
     return grade;
 }
 
+bool CourseDetails::eventFilter(QObject *obj, QEvent *event) // to show list after click anywhere on the combobox
+{
+    // Check if the event is from either the combobox or its line edit
+    if ((obj == ui->comboBox || obj == ui->comboBox->lineEdit()) &&
+        event->type() == QEvent::MouseButtonPress) {
 
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() == Qt::LeftButton) {
+            // Show the dropdown when clicking anywhere on the combobox or line edit
+            ui->comboBox->showPopup();
+            return true; // Event handled - prevent default processing
+        }
+    }
+
+    // Pass the event to the parent class for normal processing
+    return QWidget::eventFilter(obj, event);
+}

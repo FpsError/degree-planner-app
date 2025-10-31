@@ -48,6 +48,9 @@ private:
     void populateCoursesCombobox();
     std::tuple<QString, QString> getCourseStatus(bool is_done, bool is_current, bool is_planned);
     void checkCurrentCourse(QString course_code);
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 };
 
 #endif // EDITCOURSEDETAILS_H

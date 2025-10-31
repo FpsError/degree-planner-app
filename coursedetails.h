@@ -40,6 +40,9 @@ private:
     int grade = 0;
 
     void populateCoursesCombobox();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 };
 
 #endif // COURSEDETAILS_H

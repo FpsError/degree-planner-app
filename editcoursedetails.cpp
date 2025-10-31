@@ -73,6 +73,20 @@ EditCourseDetails::EditCourseDetails(QString course_code ,QString semester, QWid
     populateCoursesCombobox();
     int index = ui->comboBox->findText(course_code);
     ui->comboBox->setCurrentIndex(index);
+
+    QSqlQuery query;
+    query.prepare("Select is_current_course, is_planned_course, is_done_course from course_planning "
+                  "where course_code = :course");
+    query.bindValue(":course", course_code);
+    query.exec();
+    query.next();
+
+    if(query.value("is_done_course").toBool())
+        ui->checkBox_3->setChecked(1);
+    else if(query.value("is_current_course").toBool())
+        ui->checkBox->setChecked(1);
+    else if(query.value("is_planned_course").toBool())
+        ui->checkBox_2->setChecked(1);
 }
 
 EditCourseDetails::~EditCourseDetails()

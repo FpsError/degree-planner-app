@@ -4,41 +4,40 @@
 #include "editcoursedetails.h"
 #include "newsemester.h"
 #include "qdatetime.h"
+#include "qpushbutton.h"
 #include "qsqlquery.h"
 #include "qstyle.h"
 #include "ui_mainwindow.h"
-#include "qpushbutton.h"
 
 #include <QPixmap>
 #include <QSqlError>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
+    : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    QPixmap pix("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/trending.png");
+    QPixmap pix("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
+                "trending.png");
     ui->icon_cgpa->setPixmap(pix);
 
-    QPixmap pix1("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/book.png");
+    QPixmap pix1(
+        "C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/book.png");
     ui->icon_credits->setPixmap(pix1);
 
-    QPixmap pix2("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/calendar.png");
+    QPixmap pix2("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
+                 "calendar.png");
     ui->icon_semesters->setPixmap(pix2);
 
-    QPixmap pix3("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/target.png");
+    QPixmap pix3(
+        "C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/target.png");
     ui->icon_track->setPixmap(pix3);
 
     ui->verticalLayout_12->setObjectName("semesetersLayout");
     populateSemesters();
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
+MainWindow::~MainWindow() { delete ui; }
 
-void MainWindow::populateSemesters(){
+void MainWindow::populateSemesters() {
     QSqlQuery query;
 
     int starting_year;
@@ -51,27 +50,55 @@ void MainWindow::populateSemesters(){
     query.next();
     starting_semester = query.value(0).toString();
 
-    // Get current year
-    int currentYear = QDate::currentDate().year();
+    // Get last year
+    int lastYear;
+    query.exec("Select graduation_year from profile");
+    query.next();
+    lastYear = query.value(0).toInt();
 
     query.prepare("Select sem_term, sem_year from semester "
-               "where sem_year >= :starting_year and sem_term != \"SUMMER\" order by sem_year");
+                  "where sem_year >= :starting_year and sem_term != \"SUMMER\" "
+                  "order by sem_year");
     query.bindValue(":starting_year", starting_year);
     query.exec();
 
-    for(int year = starting_year; year <= currentYear ;year++){
-        query.next();
+    for (int year = starting_year; year <= lastYear; year++) {
+        if (!query.next()) {
+            break; // No more records available
+        }
         int sem_year = query.value("sem_year").toInt();
         QString sem_term = query.value("sem_term").toString();
 
-        if (sem_year < year){
-            year-=1;
+        if (sem_year < year) {
+            year -= 1;
             createSemesterFrame(year, sem_term);
+        } else {
+            createSemesterFrame(year, sem_term);
+            if (sem_term == "SPRING") {
+                QPushButton *line = new QPushButton();
+                line->setObjectName("addSummerButton");
+                line->setFixedHeight(10);
+                line->setStyleSheet(R"(
+                    QPushButton {
+                        background-color: transparent;
+                        border: none;
+                        margin: 2px 0px;
+                    }
+                    QPushButton:hover {
+                        background-color: #007acc;
+                        height: 3px;
+                        margin: 1px 0px;
+                    }
+                )");
+                line->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+                ui->verticalLayout_12->addWidget(line);
+                connect(line, &QPushButton::clicked, this,[=]() {
+                    onAddSemButtonClicked(year, line); });
+            }
         }
-        else createSemesterFrame(year, sem_term);
     }
 
-    QPushButton* add_sem_button = new QPushButton("+ Add Semester", this);
+    QPushButton *add_sem_button = new QPushButton("+ Add Semester", this);
     add_sem_button->setStyleSheet(R"(
     QPushButton {
         background-color: transparent;
@@ -97,14 +124,13 @@ void MainWindow::populateSemesters(){
         color: #005a9e;
     }
     )");
-    connect(add_sem_button, &QPushButton::clicked, this, [=]() {
-        onAddSemButtonClicked();
-    });
+    connect(add_sem_button, &QPushButton::clicked, this,
+            [=]() { onAddSemButtonClicked(); });
 
     ui->verticalLayout_12->addWidget(add_sem_button);
 }
 
-void MainWindow::createSemesterFrame(int year, QString semester){
+void MainWindow::createSemesterFrame(int year, QString semester) {
     // * Main semester frame
     QFrame *frame = new QFrame(this);
     frame->setFrameStyle(QFrame::StyledPanel);
@@ -137,8 +163,7 @@ void MainWindow::createSemesterFrame(int year, QString semester){
     QLabel *semesterStatus = new QLabel();
     semesterStatus->setObjectName("semesterStatus");
 
-    //QObject *semesterParent = findParent(semesterStatus, "semesterFrame");
-
+    // QObject *semesterParent = findParent(semesterStatus, "semesterFrame");
 
     semNameFrameLayout->addWidget(semesterTitle);
     semNameFrameLayout->addWidget(semesterStatus);
@@ -169,13 +194,14 @@ void MainWindow::createSemesterFrame(int year, QString semester){
         "    background-color: #444444;       /* Muted tone */"
         "    color: #AAAAAA;                  /* Dimmed text */"
         "    border: 1px solid #555555;"
-        "}"
-        ));
+        "}"));
 
     connect(button, &QPushButton::clicked, this, [=]() {
-        onAddCourseButtonClicked(frame, frameLayout, semester + " " + QString::number(year));
+        onAddCourseButtonClicked(frame, frameLayout,
+                                 semester + " " + QString::number(year));
     });
-    // *** Add semester frame name and button and horizontal spacer to the whole semester title frame
+    // *** Add semester frame name and button and horizontal spacer to the whole
+    // semester title frame
     titleFrameLayout->addWidget(semNameFrame);
     titleFrameLayout->addStretch();
     titleFrameLayout->addWidget(button);
@@ -184,14 +210,16 @@ void MainWindow::createSemesterFrame(int year, QString semester){
     QFrame *noCoursesFrame = new QFrame();
     noCoursesFrame->setObjectName("noCoursesFrame");
     noCoursesFrame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    noCoursesFrame->setStyleSheet("background-color: #363636; border-radius: 8px; border: 1px #4a4a4a;");
+    noCoursesFrame->setStyleSheet(
+        "background-color: #363636; border-radius: 8px; border: 1px #4a4a4a;");
 
     // **** Add Vertical Layout for the elements inside the no courses frame
     QVBoxLayout *noCoursesFrameLayout = new QVBoxLayout(noCoursesFrame);
 
     // Elements
     QLabel *icon = new QLabel();
-    QPixmap pix4("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/closed_book.png");
+    QPixmap pix4("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
+                 "closed_book.png");
     icon->setPixmap(pix4);
     icon->setAlignment(Qt::AlignCenter);
     QLabel *textLabel = new QLabel();
@@ -220,7 +248,8 @@ void MainWindow::createSemesterFrame(int year, QString semester){
     addFirstCourseButton->setFont(QFont("Segoe UI", 13));
 
     connect(addFirstCourseButton, &QPushButton::clicked, this, [=]() {
-        onFirstAddCourseButtonClicked(frame, frameLayout, noCoursesFrame, semester + QString::number(year));
+        onFirstAddCourseButtonClicked(frame, frameLayout, noCoursesFrame,
+                                      semester + QString::number(year));
     });
 
     // **** Add elements to layout
@@ -234,9 +263,10 @@ void MainWindow::createSemesterFrame(int year, QString semester){
 
     QSqlQuery query;
     // Add existing courses
-    query.prepare("Select course_code from course_planning "
-                  "inner join semester on semester.sem_code = course_planning.sem_code "
-                  "where sem_year = :year and sem_term = :semester");
+    query.prepare(
+        "Select course_code from course_planning "
+        "inner join semester on semester.sem_code = course_planning.sem_code "
+        "where sem_year = :year and sem_term = :semester");
     query.bindValue(":year", year);
     query.bindValue(":semester", semester.toUpper());
     query.exec();
@@ -250,8 +280,9 @@ void MainWindow::createSemesterFrame(int year, QString semester){
     updateSemesterStatus(frame, semester + QString::number(year));
 }
 
-void MainWindow::onAddCourseButtonClicked(QFrame *source, QLayout *sourceLayout, QString semester){
-    CourseDetails w(semester,this);
+void MainWindow::onAddCourseButtonClicked(QFrame *source, QLayout *sourceLayout,
+                                          QString semester) {
+    CourseDetails w(semester, this);
     bool activated = w.exec();
 
     if (activated) {
@@ -261,15 +292,19 @@ void MainWindow::onAddCourseButtonClicked(QFrame *source, QLayout *sourceLayout,
     }
 }
 
-void MainWindow::onFirstAddCourseButtonClicked(QFrame *frame, QLayout *sourceLayout, QFrame *noCoursesFrame, QString semester){
+void MainWindow::onFirstAddCourseButtonClicked(QFrame *frame,
+                                               QLayout *sourceLayout,
+                                               QFrame *noCoursesFrame,
+                                               QString semester) {
     onAddCourseButtonClicked(frame, sourceLayout, semester);
     noCoursesFrame->hide();
 }
 
-void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, QString course_code){
+void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout,
+                                        QString course_code) {
     // Check if no courses frame is showen
-    QFrame *noCoursesFrame = source->findChild<QFrame*>("noCoursesFrame");
-    if (noCoursesFrame && !noCoursesFrame->isHidden()){
+    QFrame *noCoursesFrame = source->findChild<QFrame *>("noCoursesFrame");
+    if (noCoursesFrame && !noCoursesFrame->isHidden()) {
         noCoursesFrame->hide();
     }
 
@@ -291,7 +326,7 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, Q
 
     QHBoxLayout *titleFrameLayout = new QHBoxLayout(titleFrame);
 
-    //Course labels structure
+    // Course labels structure
     course course_labels;
 
     // Course Title
@@ -327,7 +362,8 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, Q
         background-color: rgba(0, 0, 0, 50);
     }
     )");
-    QPixmap edit_button_icon("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/edit.png");
+    QPixmap edit_button_icon(
+        "C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/edit.png");
     edit_button->setIcon(edit_button_icon);
     edit_button->setHidden(1);
 
@@ -349,13 +385,13 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, Q
         background-color: rgba(0, 0, 0, 50);
     }
     )");
-    QPixmap delete_button_icon("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/delete.png");
+    QPixmap delete_button_icon(
+        "C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/delete.png");
     delete_button->setIcon(delete_button_icon);
     delete_button->setHidden(1);
 
-    connect(delete_button, &QPushButton::clicked, this, [=]() {
-        onDeleteCourseButtonClicked(courseFrame, course_code);
-    });
+    connect(delete_button, &QPushButton::clicked, this,
+            [=]() { onDeleteCourseButtonClicked(courseFrame, course_code); });
 
     // add a horizontal spacer first between the buttons and the label
     titleFrameLayout->addStretch();
@@ -363,12 +399,17 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, Q
     titleFrameLayout->addWidget(delete_button);
 
     QString semester;
-    if (edit_button->parent()->parent()->parent()){
-        semester = edit_button->parent()->parent()->parent()->findChild<QLabel*>("semesterTitle")->text();
+    if (edit_button->parent()->parent()->parent()) {
+        semester = edit_button->parent()
+                       ->parent()
+                       ->parent()
+                       ->findChild<QLabel *>("semesterTitle")
+                       ->text();
     }
 
     QSqlQuery query;
-    query.prepare("Select course_code, is_current_course, is_planned_course, is_done_course from course_planning "
+    query.prepare("Select course_code, is_current_course, is_planned_course, "
+                  "is_done_course from course_planning "
                   "where course_code = :course_code");
     query.bindValue(":course_code", course_code);
     query.exec();
@@ -385,7 +426,8 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, Q
         qDebug() << "No course found with code:" << course_code;
     }
 
-    auto [status, style_sheet] = getCourseStatus(c_is_complete, c_is_current, c_is_planned);
+    auto [status, style_sheet] =
+        getCourseStatus(c_is_complete, c_is_current, c_is_planned);
     course_labels.statusLabel->setText(status);
     course_labels.statusLabel->setStyleSheet(style_sheet);
     course_labels.statusLabel->setMinimumHeight(33);
@@ -397,11 +439,12 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, Q
     course_labels.desc = new QLabel();
     descFrameLayout->addWidget(course_labels.desc);
     course_labels.desc->setAlignment(Qt::AlignCenter);
-    query.prepare("Select course_title from course where course_code = :course_code");
+    query.prepare(
+        "Select course_title from course where course_code = :course_code");
     query.bindValue(":course_code", course_code);
     query.exec();
     QString description;
-    if(query.next()){
+    if (query.next()) {
         description = query.value(0).toString();
     }
     course_labels.desc->setText(description);
@@ -417,33 +460,36 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, Q
     // Create a layout for the frame
     QHBoxLayout *statusframeLayout = new QHBoxLayout(statusFrame);
 
-    query.prepare("Select course_credits from course where course_code = :course_code");
+    query.prepare(
+        "Select course_credits from course where course_code = :course_code");
     query.bindValue(":course_code", course_code);
     query.exec();
     QString credits_number;
-    if(query.next()){
+    if (query.next()) {
         credits_number = query.value(0).toString();
     }
 
     course_labels.credits = new QLabel();
     course_labels.credits->setText(credits_number + " credits");
 
-    query.prepare("Select course_level from course where course_code = :course_code");
+    query.prepare(
+        "Select course_level from course where course_code = :course_code");
     query.bindValue(":course_code", course_code);
     query.exec();
     QString course_level;
-    if(query.next()){
+    if (query.next()) {
         course_level = query.value(0).toString();
     }
 
     course_labels.level = new QLabel();
     course_labels.level->setText(course_level);
 
-    query.prepare("Select grade from course_planning where course_code = :course_code");
+    query.prepare(
+        "Select grade from course_planning where course_code = :course_code");
     query.bindValue(":course_code", course_code);
     query.exec();
     QString course_grade;
-    if(query.next()){
+    if (query.next()) {
         course_grade = query.value(0).toString();
     }
 
@@ -461,49 +507,53 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout, Q
     sourceLayout->addWidget(courseFrame);
     QString rawSemester = semester.remove(' ');
     connect(edit_button, &QPushButton::clicked, this, [=]() {
-        onEditCourseButtonClicked(courseFrame,course_labels ,semester);
+        onEditCourseButtonClicked(courseFrame, course_labels, semester);
         updateSemesterStatus(source, rawSemester);
     });
 }
 
-std::tuple<QString, QString> MainWindow::getCourseStatus(bool is_done, bool is_current, bool is_planned){
+std::tuple<QString, QString>
+MainWindow::getCourseStatus(bool is_done, bool is_current, bool is_planned) {
     QString style_sheet;
 
-    if (is_done){
+    if (is_done) {
         style_sheet = "QLabel { background-color: #4CAF50; "
                       "color: white; border-radius: 8px; padding: 6px 12px; "
                       "font-weight: bold; font-size: 14px; "
                       "border: 1px solid #388E3C; "
                       "qproperty-alignment: AlignCenter; }";
         return {"Completed", style_sheet};
-    } else if (is_current){
+    } else if (is_current) {
         style_sheet = "QLabel { background-color: #2196F3; "
                       "color: white; border-radius: 8px; padding: 6px 12px; "
                       "font-weight: bold; font-size: 14px; "
                       "border: 1px solid #1976D2; "
                       "qproperty-alignment: AlignCenter; }";
         return {"Current", style_sheet};
-    } else if(is_planned){
+    } else if (is_planned) {
         style_sheet = "QLabel { background-color: #9C27B0; "
                       "color: white; border-radius: 8px; padding: 6px 12px; "
                       "font-weight: bold; font-size: 14px; "
                       "border: 1px solid #7B1FA2; "
                       "qproperty-alignment: AlignCenter; }";
         return {"Planned", style_sheet};
-    }
-    else return {"Null", ""};
+    } else
+        return {"Null", ""};
 }
 
-void MainWindow::onDeleteCourseButtonClicked(QFrame *parent, QString course_code){
+void MainWindow::onDeleteCourseButtonClicked(QFrame *parent,
+                                             QString course_code) {
     QObject *semesterFrame = parent->parent();
-    QFrame *noCoursesFrame = semesterFrame->findChild<QFrame*>("noCoursesFrame");
+    QFrame *noCoursesFrame = semesterFrame->findChild<QFrame *>("noCoursesFrame");
 
-    if (noCoursesFrame && semesterFrame->findChildren<QFrame*>("courseFrame").size() == 1){
+    if (noCoursesFrame &&
+        semesterFrame->findChildren<QFrame *>("courseFrame").size() == 1) {
         noCoursesFrame->show();
     }
-    if (parent){
+    if (parent) {
         QSqlQuery query;
-        query.prepare("Delete from course_planning where course_code = :course_code");
+        query.prepare(
+            "Delete from course_planning where course_code = :course_code");
         query.bindValue(":course_code", course_code);
         query.exec();
         updateSemesterStatus(semesterFrame);
@@ -511,9 +561,11 @@ void MainWindow::onDeleteCourseButtonClicked(QFrame *parent, QString course_code
     }
 }
 
-void MainWindow::onEditCourseButtonClicked(QFrame* courseFrame, course course_label, QString semester){
-    QString course_code = courseFrame->findChild<QLabel*>("titleLabel")->text();
-    EditCourseDetails w(course_code ,semester, this);
+void MainWindow::onEditCourseButtonClicked(QFrame *courseFrame,
+                                           course course_label,
+                                           QString semester) {
+    QString course_code = courseFrame->findChild<QLabel *>("titleLabel")->text();
+    EditCourseDetails w(course_code, semester, this);
     bool activated = w.exec();
 
     if (activated) {
@@ -522,17 +574,18 @@ void MainWindow::onEditCourseButtonClicked(QFrame* courseFrame, course course_la
     }
 }
 
-bool MainWindow::eventFilter(QObject *watched, QEvent *event)
-{
+bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     // Cast the watched object to QFrame to check if it's a courseFrame
-    QFrame *courseFrame = qobject_cast<QFrame*>(watched);
+    QFrame *courseFrame = qobject_cast<QFrame *>(watched);
 
     // Check if the watched object is a courseFrame
     if (courseFrame && courseFrame->objectName().contains("courseFrame")) {
         if (event->type() == QEvent::Enter) {
             // Find the edit and delete buttons within THIS specific courseFrame
-            QPushButton *editButton = courseFrame->findChild<QPushButton*>("edit_button");
-            QPushButton *deleteButton = courseFrame->findChild<QPushButton*>("delete_button");
+            QPushButton *editButton =
+                courseFrame->findChild<QPushButton *>("edit_button");
+            QPushButton *deleteButton =
+                courseFrame->findChild<QPushButton *>("delete_button");
 
             if (editButton) {
                 editButton->show();
@@ -541,11 +594,12 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
                 deleteButton->show();
             }
             return true;
-        }
-        else if (event->type() == QEvent::Leave) {
+        } else if (event->type() == QEvent::Leave) {
             // Find the edit and delete buttons within THIS specific courseFrame
-            QPushButton *editButton = courseFrame->findChild<QPushButton*>("edit_button");
-            QPushButton *deleteButton = courseFrame->findChild<QPushButton*>("delete_button");
+            QPushButton *editButton =
+                courseFrame->findChild<QPushButton *>("edit_button");
+            QPushButton *deleteButton =
+                courseFrame->findChild<QPushButton *>("delete_button");
 
             if (editButton) {
                 editButton->hide();
@@ -561,22 +615,25 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     return QMainWindow::eventFilter(watched, event);
 }
 
-QObject* MainWindow::findParent(QObject* child, const QString& parent_name){
-    if(!child->parent())
+QObject *MainWindow::findParent(QObject *child, const QString &parent_name) {
+    if (!child->parent())
         return nullptr;
-    else if(child->parent()->objectName() == parent_name){
+    else if (child->parent()->objectName() == parent_name) {
         return child->parent();
-    } else{
+    } else {
         return findParent(child->parent(), parent_name);
     }
 }
 
-void MainWindow::updateSemesterStatus(QObject *semesterFrame, QString semester){
-    QLabel* semesterStatus = semesterFrame->findChild<QLabel*>("semesterStatus", Qt::FindChildrenRecursively);
+void MainWindow::updateSemesterStatus(QObject *semesterFrame,
+                                      QString semester) {
+    QLabel *semesterStatus = semesterFrame->findChild<QLabel *>(
+        "semesterStatus", Qt::FindChildrenRecursively);
 
     QSqlQuery query;
     query.prepare("SELECT sum(course_credits) "
-                  "FROM course_planning INNER JOIN course on course_planning.course_code = course.course_code "
+                  "FROM course_planning INNER JOIN course on "
+                  "course_planning.course_code = course.course_code "
                   "WHERE sem_code = :semester");
     query.bindValue(":semester", semester);
     query.exec();
@@ -589,62 +646,67 @@ void MainWindow::updateSemesterStatus(QObject *semesterFrame, QString semester){
     }
 
     query.prepare("SELECT count(course_planning.course_code) "
-                  "FROM course_planning INNER JOIN course on course_planning.course_code = course.course_code "
+                  "FROM course_planning INNER JOIN course on "
+                  "course_planning.course_code = course.course_code "
                   "WHERE sem_code = :semester");
     query.bindValue(":semester", semester);
     query.exec();
     query.next();
     QString n_of_courses = query.value(0).toString();
     semesterStatus->setText("test");
-    semesterStatus->setText(credits + " credits • " + n_of_courses +" courses");
+    semesterStatus->setText(credits + " credits • " + n_of_courses + " courses");
 }
 
-void MainWindow::updateSemesterStatus(QObject *semesterFrame){
-    QLabel* semesterTitle = semesterFrame->findChild<QLabel*>("semesterTitle", Qt::FindChildrenRecursively);
+void MainWindow::updateSemesterStatus(QObject *semesterFrame) {
+    QLabel *semesterTitle = semesterFrame->findChild<QLabel *>(
+        "semesterTitle", Qt::FindChildrenRecursively);
 
     updateSemesterStatus(semesterFrame, semesterTitle->text().remove(' '));
 }
 
-void MainWindow::onAddSemButtonClicked(){
+void MainWindow::onAddSemButtonClicked() {
     newSemester w(this);
     bool activated = w.exec();
-    QVBoxLayout* layout = this->findChild<QVBoxLayout*>("semesetersLayout");
+    QVBoxLayout *layout = this->findChild<QVBoxLayout *>("semesetersLayout");
     int index_1;
     int index_2;
 
     if (activated) {
         int semesters = layout->count() - 1;
-        QString semester = layout->itemAt(semesters-1)->widget()->findChild<QLabel*>("semesterTitle")->text();
+        QString semester = layout->itemAt(semesters - 1)
+                               ->widget()
+                               ->findChild<QLabel *>("semesterTitle")
+                               ->text();
         int last_sem_year = std::stoi(extractYear(semester.toStdString()));
         int semester_type = w.get_sem_type();
         std::string season = extractSeason(semester.toStdString());
 
-        if(semester_type == 0){
-            if(season == "FALL"){
+        if (semester_type == 0) {
+            if (season == "FALL") {
                 // add SPRING and last_sem_year + 1
-                createSemesterFrame(last_sem_year+1, "SPRING");
-                index_1 = layout->count()-1;
-                index_2 = layout->count()-2;
+                createSemesterFrame(last_sem_year + 1, "SPRING");
+                index_1 = layout->count() - 1;
+                index_2 = layout->count() - 2;
                 swapTwoItemsInLayout(layout, index_1, index_2);
-            } else{
+            } else {
                 // add FALL and last_sem_year
                 createSemesterFrame(last_sem_year, "FALL");
-                index_1 = layout->count()-1;
-                index_2 = layout->count()-2;
+                index_1 = layout->count() - 1;
+                index_2 = layout->count() - 2;
                 swapTwoItemsInLayout(layout, index_1, index_2);
             }
-        } else{
-            if(season == "SPRING"){
+        } else {
+            if (season == "SPRING") {
                 // add SUMMER and last_sem_year
                 createSemesterFrame(last_sem_year, "SUMMER");
-                index_1 = layout->count()-1;
-                index_2 = layout->count()-2;
+                index_1 = layout->count() - 1;
+                index_2 = layout->count() - 2;
                 swapTwoItemsInLayout(layout, index_1, index_2);
-            } else{
+            } else {
                 // add SUMMER and last_sem_year + 1
-                createSemesterFrame(last_sem_year+1, "SUMMER");
-                index_1 = layout->count()-1;
-                index_2 = layout->count()-2;
+                createSemesterFrame(last_sem_year + 1, "SUMMER");
+                index_1 = layout->count() - 1;
+                index_2 = layout->count() - 2;
                 swapTwoItemsInLayout(layout, index_1, index_2);
             }
         }
@@ -652,8 +714,10 @@ void MainWindow::onAddSemButtonClicked(){
 }
 
 // Swap positions of two items at index1 and index2
-void MainWindow::swapTwoItemsInLayout(QVBoxLayout* layout, int index_1, int index_2){
-    if (index_1 < 0 || index_2 < 0 || index_1 >= layout->count() || index_2 >= layout->count()) {
+void MainWindow::swapTwoItemsInLayout(QVBoxLayout *layout, int index_1,
+                                      int index_2) {
+    if (index_1 < 0 || index_2 < 0 || index_1 >= layout->count() ||
+        index_2 >= layout->count()) {
         return;
     }
 
@@ -664,12 +728,24 @@ void MainWindow::swapTwoItemsInLayout(QVBoxLayout* layout, int index_1, int inde
     layout->insertItem(index_1, item_2);
 }
 
-std::string MainWindow::extractYear(const std::string& semester) {
+std::string MainWindow::extractYear(const std::string &semester) {
     // Assuming format: "SEASON YEAR"
     return semester.substr(semester.find(' ') + 1);
 }
 
-std::string MainWindow::extractSeason(const std::string& semester) {
+std::string MainWindow::extractSeason(const std::string &semester) {
     // Assuming format: "SEASON YEAR"
     return semester.substr(0, semester.find(' '));
+}
+
+void MainWindow::onAddSemButtonClicked(int year, QPushButton* button_src){
+    QVBoxLayout* layout = ui->verticalLayout_12;
+    int index = layout->indexOf(button_src);
+    qDebug() << index;
+    createSemesterFrame(year, "SUMMER");
+    QLayoutItem *button = layout->takeAt(index);
+    QLayoutItem *summer_sem = layout->takeAt(layout->count()-1);
+
+    layout->insertItem(index, summer_sem);
+    layout->removeItem(button);
 }

@@ -4,6 +4,7 @@
 #include "course.h"
 #include "qboxlayout.h"
 #include "qframe.h"
+#include "qpushbutton.h"
 #include <QMainWindow>
 #include <QtSql/QSqlDatabase>
 #include <QDebug>
@@ -30,6 +31,7 @@ private slots:
     void onDeleteCourseButtonClicked(QFrame *parent, QString course_code);
     void onEditCourseButtonClicked(QFrame* source, course course_label, QString semester);
     void onAddSemButtonClicked();
+    void onAddSemButtonClicked(int year, QPushButton* button);
 
 private:
     course course_labels_temp;

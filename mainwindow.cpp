@@ -2,7 +2,7 @@
 #include "course.h"
 #include "coursedetails.h"
 #include "editcoursedetails.h"
-#include "global_objects.h"
+#include "newsemester.h"
 #include "qdatetime.h"
 #include "qsqlquery.h"
 #include "qstyle.h"
@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     QPixmap pix3("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/target.png");
     ui->icon_track->setPixmap(pix3);
 
+    ui->verticalLayout_12->setObjectName("semesetersLayout");
     populateSemesters();
 }
 
@@ -70,12 +71,37 @@ void MainWindow::populateSemesters(){
         else createSemesterFrame(year, sem_term);
     }
 
-    query.exec("Select sem_code from course_enrolled");
-
-    while(query.next()){
-        QString sem = query.value(0).toString();
-        qDebug() << "test: " + sem;
+    QPushButton* add_sem_button = new QPushButton("+ Add Semester", this);
+    add_sem_button->setStyleSheet(R"(
+    QPushButton {
+        background-color: transparent;
+        color: #007acc;
+        border: 2px dashed #007acc;
+        border-radius: 6px;
+        padding: 12px 20px;
+        font-weight: 500;
+        font-size: 14px;
+        margin: 10px;
     }
+
+    QPushButton:hover {
+        background-color: rgba(0, 122, 204, 0.1);
+        border-style: solid;
+        border-color: #1c97ea;
+        color: #1c97ea;
+    }
+
+    QPushButton:pressed {
+        background-color: rgba(0, 122, 204, 0.2);
+        border-color: #005a9e;
+        color: #005a9e;
+    }
+    )");
+    connect(add_sem_button, &QPushButton::clicked, this, [=]() {
+        onAddSemButtonClicked();
+    });
+
+    ui->verticalLayout_12->addWidget(add_sem_button);
 }
 
 void MainWindow::createSemesterFrame(int year, QString semester){
@@ -577,4 +603,73 @@ void MainWindow::updateSemesterStatus(QObject *semesterFrame){
     QLabel* semesterTitle = semesterFrame->findChild<QLabel*>("semesterTitle", Qt::FindChildrenRecursively);
 
     updateSemesterStatus(semesterFrame, semesterTitle->text().remove(' '));
+}
+
+void MainWindow::onAddSemButtonClicked(){
+    newSemester w(this);
+    bool activated = w.exec();
+    QVBoxLayout* layout = this->findChild<QVBoxLayout*>("semesetersLayout");
+    int index_1;
+    int index_2;
+
+    if (activated) {
+        int semesters = layout->count() - 1;
+        QString semester = layout->itemAt(semesters-1)->widget()->findChild<QLabel*>("semesterTitle")->text();
+        int last_sem_year = std::stoi(extractYear(semester.toStdString()));
+        int semester_type = w.get_sem_type();
+        std::string season = extractSeason(semester.toStdString());
+
+        if(semester_type == 0){
+            if(season == "FALL"){
+                // add SPRING and last_sem_year + 1
+                createSemesterFrame(last_sem_year+1, "SPRING");
+                index_1 = layout->count()-1;
+                index_2 = layout->count()-2;
+                swapTwoItemsInLayout(layout, index_1, index_2);
+            } else{
+                // add FALL and last_sem_year
+                createSemesterFrame(last_sem_year, "FALL");
+                index_1 = layout->count()-1;
+                index_2 = layout->count()-2;
+                swapTwoItemsInLayout(layout, index_1, index_2);
+            }
+        } else{
+            if(season == "SPRING"){
+                // add SUMMER and last_sem_year
+                createSemesterFrame(last_sem_year, "SUMMER");
+                index_1 = layout->count()-1;
+                index_2 = layout->count()-2;
+                swapTwoItemsInLayout(layout, index_1, index_2);
+            } else{
+                // add SUMMER and last_sem_year + 1
+                createSemesterFrame(last_sem_year+1, "SUMMER");
+                index_1 = layout->count()-1;
+                index_2 = layout->count()-2;
+                swapTwoItemsInLayout(layout, index_1, index_2);
+            }
+        }
+    }
+}
+
+// Swap positions of two items at index1 and index2
+void MainWindow::swapTwoItemsInLayout(QVBoxLayout* layout, int index_1, int index_2){
+    if (index_1 < 0 || index_2 < 0 || index_1 >= layout->count() || index_2 >= layout->count()) {
+        return;
+    }
+
+    QLayoutItem *item_1 = layout->takeAt(index_1);
+    QLayoutItem *item_2 = layout->takeAt(index_2 - (index_2 > index_1 ? 1 : 0));
+
+    layout->insertItem(index_2, item_1);
+    layout->insertItem(index_1, item_2);
+}
+
+std::string MainWindow::extractYear(const std::string& semester) {
+    // Assuming format: "SEASON YEAR"
+    return semester.substr(semester.find(' ') + 1);
+}
+
+std::string MainWindow::extractSeason(const std::string& semester) {
+    // Assuming format: "SEASON YEAR"
+    return semester.substr(0, semester.find(' '));
 }

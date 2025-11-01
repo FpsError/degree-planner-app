@@ -14,6 +14,7 @@ SOURCES += \
     global_objects.cpp \
     main.cpp \
     mainwindow.cpp \
+    newsemester.cpp \
     welcomewindow.cpp
 
 HEADERS += \
@@ -22,12 +23,14 @@ HEADERS += \
     editcoursedetails.h \
     global_objects.h \
     mainwindow.h \
+    newsemester.h \
     welcomewindow.h
 
 FORMS += \
     coursedetails.ui \
     editcoursedetails.ui \
     mainwindow.ui \
+    newsemester.ui \
     welcomewindow.ui
 
 TRANSLATIONS += \

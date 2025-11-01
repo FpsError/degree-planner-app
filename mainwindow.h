@@ -29,6 +29,7 @@ private slots:
     void onFirstAddCourseButtonClicked(QFrame *frame, QLayout *sourceLayout, QFrame *noCoursesFrame, QString semester);
     void onDeleteCourseButtonClicked(QFrame *parent, QString course_code);
     void onEditCourseButtonClicked(QFrame* source, course course_label, QString semester);
+    void onAddSemButtonClicked();
 
 private:
     course course_labels_temp;
@@ -40,6 +41,10 @@ private:
     QObject* findParent(QObject* child, const QString& parent_name);
     void updateSemesterStatus(QObject *semesterFrame, QString semester);
     void updateSemesterStatus(QObject *semesterFrame);
+
+    std::string extractYear(const std::string& semester);
+    std::string extractSeason(const std::string& semester);
+    void swapTwoItemsInLayout(QVBoxLayout* layout, int index_1, int index_2);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1220</width>
     <height>800</height>
    </rect>
   </property>
@@ -1327,7 +1327,7 @@ QTabBar::tab:pressed {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1160</width>
+             <width>1180</width>
              <height>615</height>
             </rect>
            </property>

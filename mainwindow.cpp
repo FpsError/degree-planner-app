@@ -672,10 +672,12 @@ void MainWindow::onAddSemButtonClicked() {
 
     if (activated) {
         int semesters = layout->count() - 1;
-        QString semester = layout->itemAt(semesters - 1)
-                               ->widget()
-                               ->findChild<QLabel *>("semesterTitle")
-                               ->text();
+        QLabel* previous_sem = layout->itemAt(semesters - 1)->widget()->findChild<QLabel *>("semesterTitle");
+        QString semester;
+        if(previous_sem){
+            semester = previous_sem->text();
+        } else semester = layout->itemAt(semesters - 2)->widget()->findChild<QLabel *>("semesterTitle")->text();
+
         int last_sem_year = std::stoi(extractYear(semester.toStdString()));
         int semester_type = w.get_sem_type();
         std::string season = extractSeason(semester.toStdString());

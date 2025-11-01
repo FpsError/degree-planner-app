@@ -55,9 +55,19 @@ void MainWindow::populateSemesters() {
     query.next();
     lastYear = query.value(0).toInt();
 
-    query.prepare("Select sem_term, sem_year from semester "
-                  "where sem_year >= :starting_year and sem_term != \"SUMMER\" "
-                  "order by sem_year");
+    query.prepare("SELECT s.sem_term, s.sem_year "
+                  "FROM semester s "
+                  "WHERE s.sem_year >= :starting_year "
+                  "AND ( "
+                  "    s.sem_term != 'SUMMER' "
+                  "    OR "
+                  "    EXISTS( "
+                  "        SELECT 1 "
+                  "        FROM course_planning cp "
+                  "        WHERE cp.sem_code = s.sem_code "
+                  "    ) "
+                  ") "
+                  "ORDER BY s.sem_year");
     query.bindValue(":starting_year", starting_year);
     query.exec();
 
@@ -71,6 +81,13 @@ void MainWindow::populateSemesters() {
         if (sem_year < year) {
             year -= 1;
             createSemesterFrame(year, sem_term);
+            if (sem_term == "SUMMER"){
+                QLayoutItem *button = ui->verticalLayout_12->takeAt(ui->verticalLayout_12->count()-2);
+                QLayoutItem *summer_sem = ui->verticalLayout_12->takeAt(ui->verticalLayout_12->count()-1);
+                qDebug() << ui->verticalLayout_12->count();
+                ui->verticalLayout_12->insertItem(ui->verticalLayout_12->count(), summer_sem);
+                ui->verticalLayout_12->removeItem(button);
+            }
         } else {
             createSemesterFrame(year, sem_term);
             if (sem_term == "SPRING") {
@@ -742,7 +759,6 @@ std::string MainWindow::extractSeason(const std::string &semester) {
 void MainWindow::onAddSemButtonClicked(int year, QPushButton* button_src){
     QVBoxLayout* layout = ui->verticalLayout_12;
     int index = layout->indexOf(button_src);
-    qDebug() << index;
     createSemesterFrame(year, "SUMMER");
     QLayoutItem *button = layout->takeAt(index);
     QLayoutItem *summer_sem = layout->takeAt(layout->count()-1);

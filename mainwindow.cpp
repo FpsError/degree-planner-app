@@ -3,6 +3,7 @@
 #include "coursedetails.h"
 #include "editcoursedetails.h"
 #include "newsemester.h"
+#include "qmessagebox.h"
 #include "qpushbutton.h"
 #include "qsqlquery.h"
 #include "qstyle.h"
@@ -406,7 +407,7 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout,
     delete_button->setHidden(1);
 
     connect(delete_button, &QPushButton::clicked, this,
-            [=]() { onDeleteCourseButtonClicked(courseFrame, course_code); });
+            [=]() { onDeleteCourseButtonClicked(courseFrame); });
 
     // add a horizontal spacer first between the buttons and the label
     titleFrameLayout->addStretch();
@@ -556,8 +557,7 @@ MainWindow::getCourseStatus(bool is_done, bool is_current, bool is_planned) {
         return {"Null", ""};
 }
 
-void MainWindow::onDeleteCourseButtonClicked(QFrame *parent,
-                                             QString course_code) {
+void MainWindow::onDeleteCourseButtonClicked(QFrame *parent) {
     QObject *semesterFrame = parent->parent();
     QFrame *noCoursesFrame = semesterFrame->findChild<QFrame *>("noCoursesFrame");
 
@@ -569,7 +569,7 @@ void MainWindow::onDeleteCourseButtonClicked(QFrame *parent,
         QSqlQuery query;
         query.prepare(
             "Delete from course_planning where course_code = :course_code");
-        query.bindValue(":course_code", course_code);
+        query.bindValue(":course_code", parent->findChild<QLabel*>("titleLabel", Qt::FindChildrenRecursively)->text());
         query.exec();
         updateSemesterStatus(semesterFrame);
         parent->deleteLater();

@@ -84,7 +84,6 @@ void MainWindow::populateSemesters() {
             if (sem_term == "SUMMER"){
                 QLayoutItem *button = ui->verticalLayout_12->takeAt(ui->verticalLayout_12->count()-2);
                 QLayoutItem *summer_sem = ui->verticalLayout_12->takeAt(ui->verticalLayout_12->count()-1);
-                qDebug() << ui->verticalLayout_12->count();
                 ui->verticalLayout_12->insertItem(ui->verticalLayout_12->count(), summer_sem);
                 ui->verticalLayout_12->removeItem(button);
             }

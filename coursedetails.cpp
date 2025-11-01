@@ -1,5 +1,6 @@
 #include "coursedetails.h"
 #include "global_objects.h"
+#include "qpushbutton.h"
 #include "qsqlerror.h"
 #include "qsqlquery.h"
 #include "ui_coursedetails.h"
@@ -16,6 +17,8 @@ CourseDetails::CourseDetails(QString semester, QWidget *parent)
     ui->setupUi(this);
 
     this->semester = semester;
+
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(1);
 
     ui->label_2->setText(semester);
     ui->course_title->setReadOnly(1);
@@ -110,6 +113,10 @@ void CourseDetails::on_comboBox_currentIndexChanged(int index)
 
     ui->course_title->setText(course_title);
     ui->spinBox->setValue(course_credits);
+
+    if(ui->checkBox->isChecked() or ui->checkBox_2->isChecked() or ui->checkBox_3->isChecked()){
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(1);
+    }
 }
 
 QString CourseDetails::getCourseCode(){
@@ -177,6 +184,10 @@ void CourseDetails::on_checkBox_3_checkStateChanged(const Qt::CheckState &arg1)
     } else{
         is_done_course = 0;
     }
+
+    if(ui->comboBox->currentIndex() != -1){
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(1);
+    }
 }
 
 
@@ -187,6 +198,9 @@ void CourseDetails::on_checkBox_checkStateChanged(const Qt::CheckState &arg1)
     } else{
         is_current_course = 0;
     }
+    if(ui->comboBox->currentIndex() != -1){
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(1);
+    }
 }
 
 
@@ -196,6 +210,9 @@ void CourseDetails::on_checkBox_2_checkStateChanged(const Qt::CheckState &arg1)
         is_planned_course = 1;
     } else{
         is_planned_course = 0;
+    }
+    if(ui->comboBox->currentIndex() != -1){
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(1);
     }
 }
 

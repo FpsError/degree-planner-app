@@ -21,12 +21,6 @@ public:
 private slots:
     void on_comboBox_currentIndexChanged(int index);
 
-    //void on_checkBox_3_checkStateChanged(const Qt::CheckState &arg1);
-
-    //void on_checkBox_checkStateChanged(const Qt::CheckState &arg1);
-
-    //void on_checkBox_2_checkStateChanged(const Qt::CheckState &arg1);
-
     void on_buttonBox_accepted();
 
     void on_checkBox_3_checkStateChanged(const Qt::CheckState &arg1);

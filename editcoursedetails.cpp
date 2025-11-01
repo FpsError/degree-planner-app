@@ -101,7 +101,8 @@ EditCourseDetails::~EditCourseDetails()
 
 void EditCourseDetails::populateCoursesCombobox(){
     QSqlQuery query;
-    query.exec("Select course_code from course");
+    query.exec("Select course_code from course "
+               "where course_code NOT IN (select cp.course_code from course_planning cp)");
     while(query.next()){
         QString course = query.value(0).toString();
         ui->comboBox->addItem(course);

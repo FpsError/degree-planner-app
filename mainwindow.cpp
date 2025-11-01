@@ -3,7 +3,6 @@
 #include "coursedetails.h"
 #include "editcoursedetails.h"
 #include "newsemester.h"
-#include "qdatetime.h"
 #include "qpushbutton.h"
 #include "qsqlquery.h"
 #include "qstyle.h"

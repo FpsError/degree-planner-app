@@ -59,62 +59,8 @@ void MainWindow::populateSemesters() {
     query.next();
     lastYear = query.value(0).toInt();
 
-    query.prepare("SELECT s.sem_term, s.sem_year "
-                  "FROM semester s "
-                  "WHERE s.sem_year >= :starting_year "
-                  "AND ( "
-                  "    s.sem_term != 'SUMMER' "
-                  "    OR "
-                  "    EXISTS( "
-                  "        SELECT 1 "
-                  "        FROM course_planning cp "
-                  "        WHERE cp.sem_code = s.sem_code "
-                  "    ) "
-                  ") "
-                  "ORDER BY s.sem_year");
-    query.bindValue(":starting_year", starting_year);
-    query.exec();
-
     for (int year = starting_year; year <= lastYear; year++) {
-        if (!query.next()) {
-            break; // No more records available
-        }
-        int sem_year = query.value("sem_year").toInt();
-        QString sem_term = query.value("sem_term").toString();
-
-        if (sem_year < year) {
-            year -= 1;
-            createSemesterFrame(year, sem_term);
-            if (sem_term == "SUMMER"){
-                QLayoutItem *button = ui->verticalLayout_12->takeAt(ui->verticalLayout_12->count()-2);
-                QLayoutItem *summer_sem = ui->verticalLayout_12->takeAt(ui->verticalLayout_12->count()-1);
-                ui->verticalLayout_12->insertItem(ui->verticalLayout_12->count(), summer_sem);
-                ui->verticalLayout_12->removeItem(button);
-            }
-        } else {
-            createSemesterFrame(year, sem_term);
-            if (sem_term == "SPRING") {
-                QPushButton *line = new QPushButton();
-                line->setObjectName("addSummerButton");
-                line->setFixedHeight(10);
-                line->setStyleSheet(R"(
-                    QPushButton {
-                        background-color: transparent;
-                        border: none;
-                        margin: 2px 0px;
-                    }
-                    QPushButton:hover {
-                        background-color: #007acc;
-                        height: 3px;
-                        margin: 1px 0px;
-                    }
-                )");
-                line->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-                ui->verticalLayout_12->addWidget(line);
-                connect(line, &QPushButton::clicked, this,[=]() {
-                    onAddSemButtonClicked(year, line); });
-            }
-        }
+        createYearFrame(year, starting_semester);
     }
 
     QPushButton *add_sem_button = new QPushButton("+ Add Semester", this);
@@ -147,6 +93,234 @@ void MainWindow::populateSemesters() {
             [=]() { onAddSemButtonClicked(); });
 
     ui->verticalLayout_12->addWidget(add_sem_button);
+}
+
+void MainWindow::createYearFrame(int year, QString starting_semester){
+    QFrame *frame = new QFrame(this);
+    frame->setObjectName("yearFrame");
+
+    // ** Horizontal Layout for the main frame
+    QHBoxLayout *frameLayout = new QHBoxLayout(frame);
+    frameLayout->setObjectName("yearFrameLayout");
+
+    bool hasSummer = hasSummerSemester(year);
+
+    if(!hasSummer){
+        //no summer session, don't print it
+        if(starting_semester == "SPRING"){
+            createSemesterFrame(frameLayout, year+1, "SPRING");
+            addAddSummerButton(frameLayout, year);
+        } else{
+            createSemesterFrame(frameLayout, year, "FALL");
+            createSemesterFrame(frameLayout, year+1, "SPRING");
+            addAddSummerButton(frameLayout, year);
+        }
+    } else{
+        if(starting_semester == "SPRING"){
+            createSemesterFrame(frameLayout, year+1, "SPRING");
+            createSemesterFrame(frameLayout, year+1, "SUMMER");
+        } else if(starting_semester == "SUMMER"){
+            createSemesterFrame(frameLayout, year+1, "SUMMER");
+        } else{
+            createSemesterFrame(frameLayout, year, "FALL");
+            createSemesterFrame(frameLayout, year+1, "SPRING");
+            createSemesterFrame(frameLayout, year+1, "SUMMER");
+        }
+    }
+
+    ui->verticalLayout_12->addWidget(frame);
+}
+
+bool MainWindow::hasSummerSemester(int year){
+    //check if year has a summer session
+    QSqlQuery query;
+    query.prepare("SELECT DISTINCT s.sem_term, s.sem_year "
+                  "FROM course_planning cp INNER JOIN semester s "
+                  "on cp.sem_code = s.sem_code "
+                  "WHERE s.sem_term = :sem_term and sem_year = :year");
+    query.bindValue(":sem_term", "SUMMER");
+    query.bindValue(":year", year+1);
+    query.exec();
+
+    if(!query.next()) return false;
+    else return true;
+}
+
+void MainWindow::addAddSummerButton(QHBoxLayout* layout, int year){
+    QPushButton *addSummerButton = new QPushButton("+");
+    addSummerButton->setObjectName("addSummerButton");
+    addSummerButton->setToolTip("Add Summer Semester");
+    addSummerButton->setFixedSize(30, 60);
+
+    // Apply the stylesheet
+    addSummerButton->setStyleSheet(R"(
+    QPushButton {
+        background-color: #2196F3;
+        border: 2px solid #1976D2;
+        border-radius: 10px;
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+    }
+    QPushButton:hover {
+        background-color: #1976D2;
+        border: 2px solid #0D47A1;
+    }
+    QPushButton:pressed {
+        background-color: #0D47A1;
+    }
+    )");
+
+    layout->addWidget(addSummerButton);
+    connect(addSummerButton, &QPushButton::clicked, this,[=]() {
+        onAddSemButtonClicked(layout, year, addSummerButton); });
+}
+
+void MainWindow::createSemesterFrame(QHBoxLayout* yearFrame, int year, QString semester) {
+    // * Main semester frame
+    QFrame *frame = new QFrame();
+    frame->setFrameStyle(QFrame::StyledPanel);
+    //frame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    frame->setObjectName("semesterFrame");
+
+    // ** Vertical Layout for the main frame
+    QVBoxLayout *frameLayout = new QVBoxLayout(frame);
+    frameLayout->setObjectName("semesterFrameLayout");
+
+    // *** Frame for the semester title
+    QFrame *titleFrame = new QFrame();
+
+    // Horizontal Layout for the semester title frame
+    QHBoxLayout *titleFrameLayout = new QHBoxLayout(titleFrame);
+
+    // **** Frame for the semester name and courses status
+    QFrame *semNameFrame = new QFrame();
+    QVBoxLayout *semNameFrameLayout = new QVBoxLayout(semNameFrame);
+    QLabel *semesterTitle = new QLabel();
+    semesterTitle->setObjectName("semesterTitle");
+    semesterTitle->setMinimumHeight(30);
+    semesterTitle->setText(semester + " " + QString::number(year));
+    semesterTitle->setFont(QFont("Segoe UI", 16, QFont::Bold));
+
+    QLabel *semesterStatus = new QLabel();
+    semesterStatus->setObjectName("semesterStatus");
+
+    // QObject *semesterParent = findParent(semesterStatus, "semesterFrame");
+
+    semNameFrameLayout->addWidget(semesterTitle);
+    semNameFrameLayout->addWidget(semesterStatus);
+
+    // **** Button to add courses
+    QPushButton *button = new QPushButton("+ Add Course");
+    button->setStyleSheet(QStringLiteral(
+        "QPushButton {"
+        "    background-color: #2E2E2E;       /* Deep charcoal base */"
+        "    color: #FFFFFF;                  /* Crisp white text */"
+        "    border: 1px solid #555555;       /* Subtle border */"
+        "    border-radius: 6px;              /* Smooth rounded corners */"
+        "    padding: 6px 12px;               /* Comfortable spacing */"
+        "    font-size: 14px;                 /* Clean, readable font */"
+        "}"
+        ""
+        "QPushButton:hover {"
+        "    background-color: #3E3E3E;       /* Slightly lighter on hover */"
+        "    border: 1px solid #777777;       /* Highlight border */"
+        "}"
+        ""
+        "QPushButton:pressed {"
+        "    background-color: #1E1E1E;       /* Darker when pressed */"
+        "    border: 1px solid #999999;       /* Stronger border */"
+        "}"
+        ""
+        "QPushButton:disabled {"
+        "    background-color: #444444;       /* Muted tone */"
+        "    color: #AAAAAA;                  /* Dimmed text */"
+        "    border: 1px solid #555555;"
+        "}"));
+
+    connect(button, &QPushButton::clicked, this, [=]() {
+        onAddCourseButtonClicked(frame, frameLayout,
+                                 semester + " " + QString::number(year));
+    });
+    // *** Add semester frame name and button and horizontal spacer to the whole
+    // semester title frame
+    titleFrameLayout->addWidget(semNameFrame);
+    titleFrameLayout->addStretch();
+    titleFrameLayout->addWidget(button);
+
+    // *** Frame for the no courses yet
+    QFrame *noCoursesFrame = new QFrame();
+    noCoursesFrame->setObjectName("noCoursesFrame");
+    noCoursesFrame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    noCoursesFrame->setStyleSheet(
+        "background-color: #363636; border-radius: 8px; border: 1px #4a4a4a;");
+
+    // **** Add Vertical Layout for the elements inside the no courses frame
+    QVBoxLayout *noCoursesFrameLayout = new QVBoxLayout(noCoursesFrame);
+
+    // Elements
+    QLabel *icon = new QLabel();
+    QPixmap pix4("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
+                 "closed_book.png");
+    icon->setPixmap(pix4);
+    icon->setAlignment(Qt::AlignCenter);
+    QLabel *textLabel = new QLabel();
+    textLabel->setText("No courses planned for this semester");
+    textLabel->setFont(QFont("Segoe UI", 13));
+    textLabel->setAlignment(Qt::AlignCenter);
+    QPushButton *addFirstCourseButton = new QPushButton();
+    addFirstCourseButton->setText("Add your first course");
+    addFirstCourseButton->setStyleSheet(R"(
+    QPushButton {
+        background-color: transparent;
+        border: none;
+        color: #4fc3f7;           /* Light blue - good visibility on dark background */
+        padding: 2px 4px;
+        text-decoration: underline;
+    }
+
+    QPushButton:hover {
+        color: #29b6f6;           /* Slightly brighter blue on hover */
+        text-decoration: none;
+    }
+
+    QPushButton:pressed {
+        color: #81d4fa;           /* Even lighter blue when pressed */
+    })");
+    addFirstCourseButton->setFont(QFont("Segoe UI", 13));
+
+    connect(addFirstCourseButton, &QPushButton::clicked, this, [=]() {
+        onFirstAddCourseButtonClicked(frame, frameLayout, noCoursesFrame,
+                                      semester + QString::number(year));
+    });
+
+    // **** Add elements to layout
+    noCoursesFrameLayout->addWidget(icon);
+    noCoursesFrameLayout->addWidget(textLabel);
+    noCoursesFrameLayout->addWidget(addFirstCourseButton);
+
+    // ** Add title Frame to the Vertical Layout
+    frameLayout->addWidget(titleFrame);
+    frameLayout->addWidget(noCoursesFrame);
+
+    QSqlQuery query;
+    // Add existing courses
+    query.prepare(
+        "Select course_code from course_planning "
+        "inner join semester on semester.sem_code = course_planning.sem_code "
+        "where sem_year = :year and sem_term = :semester");
+    query.bindValue(":year", year);
+    query.bindValue(":semester", semester.toUpper());
+    query.exec();
+    while (query.next()) {
+        QString course_code = query.value(0).toString();
+        addCoursesFromDatabase(frame, frameLayout, course_code);
+    }
+
+    // * Add the semester frame to the vertical layout of scrollable area
+    //ui->verticalLayout_12->addWidget(frame);
+    yearFrame->addWidget(frame);
+    updateSemesterStatus(frame, semester + QString::number(year));
 }
 
 void MainWindow::createSemesterFrame(int year, QString semester) {
@@ -758,14 +932,11 @@ std::string MainWindow::extractSeason(const std::string &semester) {
     return semester.substr(0, semester.find(' '));
 }
 
-void MainWindow::onAddSemButtonClicked(int year, QPushButton* button_src){
-    QVBoxLayout* layout = ui->verticalLayout_12;
+void MainWindow::onAddSemButtonClicked(QHBoxLayout* layout, int year, QPushButton* button_src){
     int index = layout->indexOf(button_src);
-    createSemesterFrame(year, "SUMMER");
+    createSemesterFrame(layout , year+1, "SUMMER");
+    button_src->setStyleSheet("QPushButton{background-color: transparent}");
     QLayoutItem *button = layout->takeAt(index);
-    QLayoutItem *summer_sem = layout->takeAt(layout->count()-1);
-
-    layout->insertItem(index, summer_sem);
     layout->removeItem(button);
 }
 

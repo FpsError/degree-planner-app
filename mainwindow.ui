@@ -676,7 +676,7 @@ QTabBar::tab:pressed {
 }</string>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="iconSize">
        <size>
@@ -921,7 +921,7 @@ QTabBar::tab:pressed {
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_8">
+               <widget class="QLabel" name="credits_earned_label">
                 <property name="font">
                  <font>
                   <pointsize>16</pointsize>
@@ -934,7 +934,7 @@ QTabBar::tab:pressed {
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_9">
+               <widget class="QLabel" name="credit_precentage_label">
                 <property name="text">
                  <string>70% complete</string>
                 </property>

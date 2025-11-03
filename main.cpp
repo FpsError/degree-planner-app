@@ -26,27 +26,24 @@ int main(int argc, char *argv[])
 
     bool db_is_open = db.open();
 
+    QSqlQuery query;
+    query.exec("Select id from profile");
+    if (query.next()){
+        //qDebug() << "Profile found, opening it";
+        profile_id = query.value(0).toInt();
+    } else {
+        //qDebug() << "Profile not found, creating one";
+    }
+
     MainWindow w;
     WelcomeWindow wm;
 
-    if (db_is_open)
-    {
-        QSqlQuery query;
-        query.exec("Select id from profile");
-
-        if (query.next()){
-            //qDebug() << "Profile found, opening it";
-            profile_id = query.value(0).toInt();
-            w.show();
-        } else {
-            //qDebug() << "Profile not found, creating one";
-            wm.show();
-        }
+    //has to be this way for the profile_id not to be -1 later on
+    if (profile_id != -1){
+        w.show();
+    } else {
+        wm.show();
     }
-    else{
-        //qDebug() << "database is not connected";
-    }
-
 
     return a.exec();
 }

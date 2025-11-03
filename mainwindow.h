@@ -48,6 +48,8 @@ private:
     std::string extractSeason(const std::string& semester);
     void swapTwoItemsInLayout(QVBoxLayout* layout, int index_1, int index_2);
 
+    void updateCreditsEarned();
+
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 };

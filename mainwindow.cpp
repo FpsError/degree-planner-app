@@ -2,6 +2,7 @@
 #include "course.h"
 #include "coursedetails.h"
 #include "editcoursedetails.h"
+#include "global_objects.h"
 #include "newsemester.h"
 #include "qmessagebox.h"
 #include "qpushbutton.h"
@@ -32,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->icon_track->setPixmap(pix3);
 
     ui->verticalLayout_12->setObjectName("semesetersLayout");
+
+    updateCreditsEarned();
     populateSemesters();
 }
 
@@ -764,4 +767,25 @@ void MainWindow::onAddSemButtonClicked(int year, QPushButton* button_src){
 
     layout->insertItem(index, summer_sem);
     layout->removeItem(button);
+}
+
+void MainWindow::updateCreditsEarned(){
+    QSqlQuery query;
+    query.exec("select sum(course_credits) "
+               "from course_planning cp inner JOIN course c on cp.course_code = c.course_code "
+               "where is_done_course = 1");
+    query.next();
+    int credits_earned = query.value(0).toInt();
+
+    query.prepare("select credit_requirements from profile inner join major on profile.major = major.major_name "
+                  "where id = :profile_id");
+    query.bindValue(":profile_id", profile_id);
+    query.exec();
+    query.next();
+    int credits_requirement = query.value(0).toInt();
+
+    ui->credits_earned_label->setText(QString::number(credits_earned) + "/" + QString::number(credits_requirement));
+
+    int credits_progress = (static_cast<float>(credits_earned)/static_cast<float>(credits_requirement))*100;
+    ui->credit_precentage_label->setText(QString::number(credits_progress) + "% complete");
 }

@@ -14,7 +14,7 @@
 #include <QSqlError>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow) {
+    : QMainWindow(parent), ui(new Ui::MainWindow), scene(new QGraphicsScene(this)) {
     ui->setupUi(this);
     QPixmap pix("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
                 "trending.png");
@@ -35,7 +35,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->verticalLayout_12->setObjectName("semesetersLayout");
 
     updateCreditsEarned();
+    updateSemsLeft();
     populateSemesters();
+    populateGraphics();
+
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -180,7 +183,6 @@ void MainWindow::createSemesterFrame(QHBoxLayout* yearFrame, int year, QString s
     // * Main semester frame
     QFrame *frame = new QFrame();
     frame->setFrameStyle(QFrame::StyledPanel);
-    //frame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     frame->setObjectName("semesterFrame");
 
     // ** Vertical Layout for the main frame
@@ -959,4 +961,64 @@ void MainWindow::updateCreditsEarned(){
 
     int credits_progress = (static_cast<float>(credits_earned)/static_cast<float>(credits_requirement))*100;
     ui->credit_precentage_label->setText(QString::number(credits_progress) + "% complete");
+}
+
+void MainWindow::populateGraphics(){
+    scene->addText("Hello, world!");
+    scene->addEllipse(1, 1, 1, 1);
+
+    ui->graphicsView->setScene(scene);
+}
+
+void MainWindow::updateSemsLeft() {
+    // Get all profile data in one query
+    QSqlQuery query;
+    query.prepare(
+        "SELECT starting_semester, starting_year, graduation_year "
+        "FROM profile WHERE id = :profile_id"
+        );
+    query.bindValue(":profile_id", profile_id);
+
+    if (!query.exec() || !query.next()) {
+        qDebug() << "Failed to get profile data:" << query.lastError().text();
+        return;
+    }
+
+    QString startingSemester = query.value("starting_semester").toString();
+    int startingYear = query.value("starting_year").toInt();
+    int endingYear = query.value("graduation_year").toInt();
+    QString endingSemester = "SPRING";  // Assuming graduation is always spring
+
+    ui->label_12->setText("Expected graduation: Spring " + QString::number(endingYear));
+
+    QString expectedSemsCountQuery = "SELECT count(sem_code) FROM semester "
+                                     "WHERE sem_code NOT LIKE '%SUMMER%' "
+                                     "AND ( (sem_year > :starting_year AND sem_year < :ending_year) "
+                                     "OR (sem_year = :starting_year AND CASE :starting_semester "
+                                     "WHEN 'FALL' THEN sem_term IN ('FALL') "
+                                     "WHEN 'SPRING' THEN sem_term IN ('SPRING', 'FALL') END) "
+                                     "OR (sem_year = :ending_year AND CASE :ending_semester "
+                                     "WHEN 'FALL' THEN sem_term IN ('SPRING', 'FALL') "
+                                     "WHEN 'SPRING' THEN sem_term IN ('SPRING') END) ) "
+                                     "ORDER BY sem_year, "
+                                     "CASE sem_term WHEN 'SPRING' THEN 1 WHEN 'FALL' THEN 2 END";
+
+    query.prepare(expectedSemsCountQuery);
+
+    query.bindValue(":starting_year", startingYear);
+    query.bindValue(":ending_year", endingYear);
+    query.bindValue(":starting_semester", startingSemester);
+    query.bindValue(":ending_semester", endingSemester);
+
+    query.exec();
+    query.next();
+    int expectedSemesterCount = query.value(0).toInt();
+
+    query.prepare("SELECT COUNT(*) FROM (SELECT sem_code FROM course_planning WHERE sem_code NOT LIKE '%SUMMER%' GROUP BY sem_code HAVING SUM(is_done_course) != 0)");
+    query.exec();
+    query.next();
+    int completedSemestersCount = query.value(0).toInt();
+
+    int num_of_sems_left = expectedSemesterCount - completedSemestersCount;
+    ui->num_sems_left->setText(QString::number(num_of_sems_left));
 }

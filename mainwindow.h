@@ -4,6 +4,7 @@
 #include "course.h"
 #include "qboxlayout.h"
 #include "qframe.h"
+#include "qgraphicsscene.h"
 #include "qpushbutton.h"
 #include <QMainWindow>
 #include <QtSql/QSqlDatabase>
@@ -36,7 +37,11 @@ private slots:
 private:
     course course_labels_temp;
     Ui::MainWindow *ui;
+    QGraphicsScene *scene;
+
     void populateSemesters();
+    void populateGraphics();
+
     void createYearFrame(int year, QString starting_semester);
     void createSemesterFrame(int year, QString semester);
     void createSemesterFrame(QHBoxLayout* yearFrame, int year, QString semester);
@@ -51,6 +56,7 @@ private:
     void swapTwoItemsInLayout(QVBoxLayout* layout, int index_1, int index_2);
 
     void updateCreditsEarned();
+    void updateSemsLeft();
     bool hasSummerSemester(int year);
 
 protected:

@@ -1045,7 +1045,7 @@ QTabBar::tab:pressed {
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_10">
+               <widget class="QLabel" name="num_sems_left">
                 <property name="font">
                  <font>
                   <pointsize>16</pointsize>
@@ -1341,6 +1341,11 @@ QTabBar::tab:pressed {
        <attribute name="title">
         <string>⏳Progress</string>
        </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_13">
+        <item>
+         <widget class="QGraphicsView" name="graphicsView"/>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="recc">
        <attribute name="title">

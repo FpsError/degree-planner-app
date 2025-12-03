@@ -76,8 +76,8 @@ EditCourseDetails::EditCourseDetails(QString course_code ,QString semester, QWid
     int index = ui->comboBox->findText(course_code);
     ui->comboBox->setCurrentIndex(index);
 
-    ui->comboBox->installEventFilter(this);
-    ui->comboBox->lineEdit()->installEventFilter(this);
+    //ui->comboBox->installEventFilter(this);
+    //ui->comboBox->lineEdit()->installEventFilter(this);
 
     QSqlQuery query;
     query.prepare("Select is_current_course, is_planned_course, is_done_course from course_planning "
@@ -101,8 +101,10 @@ EditCourseDetails::~EditCourseDetails()
 
 void EditCourseDetails::populateCoursesCombobox(){
     QSqlQuery query;
-    query.exec("Select course_code from course "
-               "where course_code NOT IN (select cp.course_code from course_planning cp)");
+    query.prepare("Select course_code from course "
+               "where course_code NOT IN (select cp.course_code from course_planning cp where cp.course_code != :course_code)");
+    query.bindValue(":couse_code", old_course_code);
+    query.exec();
     while(query.next()){
         QString course = query.value(0).toString();
         ui->comboBox->addItem(course);

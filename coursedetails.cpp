@@ -74,8 +74,8 @@ CourseDetails::CourseDetails(QString semester, QWidget *parent)
         height: 0px;
     }
 )");
-    ui->comboBox->installEventFilter(this);
-    ui->comboBox->lineEdit()->installEventFilter(this);
+    //ui->comboBox->installEventFilter(this);
+    //ui->comboBox->lineEdit()->installEventFilter(this);
     populateCoursesCombobox();
 }
 

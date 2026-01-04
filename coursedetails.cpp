@@ -216,7 +216,7 @@ void CourseDetails::on_checkBox_2_checkStateChanged(const Qt::CheckState &arg1)
     }
 }
 
-int CourseDetails::getCourseGrade(){
+QString CourseDetails::getCourseGrade(){
     return grade;
 }
 
@@ -237,3 +237,9 @@ bool CourseDetails::eventFilter(QObject *obj, QEvent *event) // to show list aft
     // Pass the event to the parent class for normal processing
     return QWidget::eventFilter(obj, event);
 }
+
+void CourseDetails::on_lineEdit_2_textChanged(const QString &arg1)
+{
+    grade = ui->lineEdit_2->text();
+}
+

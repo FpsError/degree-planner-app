@@ -17,7 +17,7 @@ public:
 
     QString getCourseCode();
     std::tuple<bool, bool, bool> getCourseStatus();
-    int getCourseGrade();
+    QString getCourseGrade();
 
 private slots:
     void on_comboBox_currentIndexChanged(int index);
@@ -30,6 +30,8 @@ private slots:
 
     void on_checkBox_2_checkStateChanged(const Qt::CheckState &arg1);
 
+    void on_lineEdit_2_textChanged(const QString &arg1);
+
 private:
     Ui::CourseDetails *ui;
     QString course_code;
@@ -37,7 +39,7 @@ private:
     int is_current_course = 0;
     int is_done_course = 0;
     int is_planned_course = 0;
-    int grade = 0;
+    QString grade;
 
     void populateCoursesCombobox();
 

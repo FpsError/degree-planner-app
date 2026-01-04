@@ -44,6 +44,8 @@ private slots:
     void onAddSemButtonClicked();
     void onAddSemButtonClicked(QHBoxLayout* layout,int year, QPushButton* button);
 
+    void on_tabWidget_tabBarClicked(int index);
+
 private:
     course course_labels_temp;
     Ui::MainWindow *ui;

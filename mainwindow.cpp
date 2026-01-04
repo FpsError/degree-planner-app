@@ -1131,3 +1131,9 @@ float MainWindow::PointsFromGradeLetters(QString grade) {
     return 0;
 }
 
+
+void MainWindow::on_tabWidget_tabBarClicked(int index)
+{
+    if(index==0) refreshWindow();
+}
+

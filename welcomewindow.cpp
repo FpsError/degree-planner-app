@@ -130,7 +130,6 @@ void WelcomeWindow::on_confirm_button_clicked()
         qDebug() << "Insert failed:" << query.lastError().text();
     }
     profile_id = profileId;
-    qDebug() << profile_id;
     w.refreshWindow();
     w.show();
     close();

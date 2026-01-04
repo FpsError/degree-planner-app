@@ -80,12 +80,12 @@ EditCourseDetails::EditCourseDetails(QString course_code ,QString semester, QWid
     //ui->comboBox->lineEdit()->installEventFilter(this);
 
     QSqlQuery query;
-    query.prepare("Select is_current_course, is_planned_course, is_done_course from course_planning "
+    query.prepare("Select is_current_course, is_planned_course, is_done_course, grade from course_planning "
                   "where course_code = :course");
     query.bindValue(":course", course_code);
     query.exec();
     query.next();
-
+    ui->lineEdit_2->setText(query.value("grade").toString());
     if(query.value("is_done_course").toBool())
         ui->checkBox_3->setChecked(1);
     else if(query.value("is_current_course").toBool())
@@ -256,7 +256,7 @@ course EditCourseDetails::getUpdatedCourse(){
     new_course.level->setText(course_level);
 
     new_course.grade = new QLabel();
-    new_course.grade->setText("Grade: " + QString::number(grade));
+    new_course.grade->setText("Grade: " + grade);
 
     return new_course;
 }
@@ -311,3 +311,9 @@ bool EditCourseDetails::eventFilter(QObject *obj, QEvent *event) // to show list
     // Pass the event to the parent class for normal processing
     return QWidget::eventFilter(obj, event);
 }
+
+void EditCourseDetails::on_lineEdit_2_textChanged(const QString &arg1)
+{
+    grade = ui->lineEdit_2->text();
+}
+

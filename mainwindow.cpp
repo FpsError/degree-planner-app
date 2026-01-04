@@ -1027,7 +1027,6 @@ void MainWindow::updateSemsLeft() {
         );
     query.bindValue(":profile_id", profile_id);
     query.exec();
-    qDebug() << profile_id;
     if (!query.next()) {
         qDebug() << "Failed to get profile data:" << query.lastError().text();
         return;

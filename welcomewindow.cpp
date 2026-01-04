@@ -1,4 +1,6 @@
 #include "welcomewindow.h"
+#include "global_objects.h"
+#include "qsqlerror.h"
 #include "qsqlquery.h"
 #include "ui_welcomewindow.h"
 
@@ -114,8 +116,22 @@ void WelcomeWindow::on_confirm_button_clicked()
     if (!minor.empty()){
         query.bindValue(":major", QString::fromStdString(minor));
     }
-
-    query.exec();
+    int profileId = -1;
+    if (query.exec()) {
+        // Get the last inserted ID
+        QVariant lastId = query.lastInsertId();
+        if (lastId.isValid()) {
+            profileId = lastId.toInt();
+            qDebug() << "Inserted profile with ID:" << profileId;
+        } else {
+            qDebug() << "Failed to get last inserted ID";
+        }
+    } else {
+        qDebug() << "Insert failed:" << query.lastError().text();
+    }
+    profile_id = profileId;
+    qDebug() << profile_id;
+    w.refreshWindow();
     w.show();
     close();
 }

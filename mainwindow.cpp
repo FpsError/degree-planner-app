@@ -16,6 +16,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), scene(new QGraphicsScene(this)) {
     ui->setupUi(this);
+    ui->tabWidget->setTabVisible(2, 0);
+    ui->tabWidget->setTabVisible(3, 0);
+    ui->frame_5->setVisible(0);
     QPixmap pix("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
                 "trending.png");
     ui->icon_cgpa->setPixmap(pix);
@@ -33,15 +36,37 @@ MainWindow::MainWindow(QWidget *parent)
     ui->icon_track->setPixmap(pix3);
 
     ui->verticalLayout_12->setObjectName("semesetersLayout");
+    if(profile_id != -1){
+        updateGPA();
+        updateCreditsEarned();
+        updateSemsLeft();
+        populateSemesters();
+        populateGraphics();
+    } else return;
+}
 
+MainWindow::~MainWindow() { delete ui; }
+
+void MainWindow::refreshWindow(){
+    updateGPA();
     updateCreditsEarned();
     updateSemsLeft();
     populateSemesters();
     populateGraphics();
-
 }
 
-MainWindow::~MainWindow() { delete ui; }
+AcademicStanding MainWindow::getStandingFromGPA(double gpa) {
+    if (gpa < 0.0 || gpa > 4.0) {
+        throw std::out_of_range("GPA must be between 0.0 and 4.0");
+    }
+
+    if (gpa < 2.0) return AcademicStanding::PROBATION;
+    if (gpa < 3.5) return AcademicStanding::SATISFACTORY;
+    if (gpa < 3.8) return AcademicStanding::GOOD;
+    if (gpa < 4.0) return AcademicStanding::EXCELLENT;
+    if (gpa == 4.0) return AcademicStanding::HIGHEST_HONORS;
+    return AcademicStanding::INVALID;
+}
 
 void MainWindow::populateSemesters() {
     QSqlQuery query;
@@ -180,8 +205,16 @@ void MainWindow::addAddSummerButton(QHBoxLayout* layout, int year){
 }
 
 void MainWindow::createSemesterFrame(QHBoxLayout* yearFrame, int year, QString semester) {
+    QFrame *frame_with_spacers = new QFrame();
+    QVBoxLayout *SpacersFrameLayout = nullptr;
+    frame_with_spacers->setFrameStyle(QFrame::NoFrame);
     // * Main semester frame
-    QFrame *frame = new QFrame();
+    QFrame *frame;
+    if(semester == "SUMMER") {
+        frame = new QFrame(frame_with_spacers);
+        SpacersFrameLayout = new QVBoxLayout(frame_with_spacers);
+    }
+    else frame = new QFrame();
     frame->setFrameStyle(QFrame::StyledPanel);
     frame->setObjectName("semesterFrame");
 
@@ -305,6 +338,12 @@ void MainWindow::createSemesterFrame(QHBoxLayout* yearFrame, int year, QString s
     frameLayout->addWidget(titleFrame);
     frameLayout->addWidget(noCoursesFrame);
 
+    if(semester == "SUMMER"){
+        SpacersFrameLayout->addStretch();
+        SpacersFrameLayout->addWidget(frame);
+        SpacersFrameLayout->addStretch();
+    }
+
     QSqlQuery query;
     // Add existing courses
     query.prepare(
@@ -321,7 +360,9 @@ void MainWindow::createSemesterFrame(QHBoxLayout* yearFrame, int year, QString s
 
     // * Add the semester frame to the vertical layout of scrollable area
     //ui->verticalLayout_12->addWidget(frame);
-    yearFrame->addWidget(frame);
+    if(semester == "SUMMER") yearFrame->addWidget(frame_with_spacers);
+    else yearFrame->addWidget(frame);
+
     updateSemesterStatus(frame, semester + QString::number(year));
 }
 
@@ -944,11 +985,7 @@ void MainWindow::onAddSemButtonClicked(QHBoxLayout* layout, int year, QPushButto
 
 void MainWindow::updateCreditsEarned(){
     QSqlQuery query;
-    query.exec("select sum(course_credits) "
-               "from course_planning cp inner JOIN course c on cp.course_code = c.course_code "
-               "where is_done_course = 1");
-    query.next();
-    int credits_earned = query.value(0).toInt();
+    int credits_earned = getCreditsEarned();
 
     query.prepare("select credit_requirements from profile inner join major on profile.major = major.major_name "
                   "where id = :profile_id");
@@ -959,8 +996,19 @@ void MainWindow::updateCreditsEarned(){
 
     ui->credits_earned_label->setText(QString::number(credits_earned) + "/" + QString::number(credits_requirement));
 
+
     int credits_progress = (static_cast<float>(credits_earned)/static_cast<float>(credits_requirement))*100;
     ui->credit_precentage_label->setText(QString::number(credits_progress) + "% complete");
+}
+
+int MainWindow::getCreditsEarned(){
+    QSqlQuery query;
+    query.exec("select sum(course_credits) "
+               "from course_planning cp inner JOIN course c on cp.course_code = c.course_code "
+               "where is_done_course = 1");
+    if(query.next()){
+        return query.value(0).toInt();
+    } else return 0;
 }
 
 void MainWindow::populateGraphics(){
@@ -978,8 +1026,9 @@ void MainWindow::updateSemsLeft() {
         "FROM profile WHERE id = :profile_id"
         );
     query.bindValue(":profile_id", profile_id);
-
-    if (!query.exec() || !query.next()) {
+    query.exec();
+    qDebug() << profile_id;
+    if (!query.next()) {
         qDebug() << "Failed to get profile data:" << query.lastError().text();
         return;
     }
@@ -1022,3 +1071,64 @@ void MainWindow::updateSemsLeft() {
     int num_of_sems_left = expectedSemesterCount - completedSemestersCount;
     ui->num_sems_left->setText(QString::number(num_of_sems_left));
 }
+
+void MainWindow::updateGPA() {
+    int credits_earned = getCreditsEarned();
+
+    QSqlQuery query;
+    query.prepare("SELECT grade, c.course_credits "
+                  "FROM course_planning CP INNER JOIN course C on CP.course_code = c.course_code "
+                  "WHERE is_done_course = 1");
+    query.exec();
+    float sum = 0;
+    while(query.next()){
+        float points = PointsFromGradeLetters(query.value(0).toString());
+        sum += points*query.value(1).toFloat();
+    }
+
+    float gpa = sum/static_cast<float>(credits_earned);
+
+    ui->label_6->setText(QString::number(gpa));
+
+    AcademicStanding standing = getStandingFromGPA(gpa);
+
+    switch(standing) {
+    case AcademicStanding::PROBATION:
+        ui->label_5->setText("Probation");
+        break;
+    case AcademicStanding::SATISFACTORY:
+        ui->label_5->setText("Satisfactory");
+        break;
+    case AcademicStanding::GOOD:
+        ui->label_5->setText("Good");
+        break;
+    case AcademicStanding::EXCELLENT:
+        ui->label_5->setText("Excellent");
+        break;
+    case AcademicStanding::HIGHEST_HONORS:
+        ui->label_5->setText("Highest Honors");
+        break;
+    case AcademicStanding::INVALID:
+        ui->label_5->setText("More info needed to find GPA");
+        break;
+    }
+
+}
+
+float MainWindow::PointsFromGradeLetters(QString grade) {
+    if (grade == "A+") return 4.3;
+    if (grade == "A") return 4;
+    if (grade == "A-") return 3.7;
+    if (grade == "B+") return 3.3;
+    if (grade == "B") return 3;
+    if (grade == "B-") return 2.7;
+    if (grade == "C+") return 2.3;
+    if (grade == "C") return 2;
+    if (grade == "C-") return 1.7;
+    if (grade == "D+") return 1.3;
+    if (grade == "D") return 1;
+    if (grade == "D-") return 0.7;
+    if (grade == "F") return 0;
+    return 0;
+}
+

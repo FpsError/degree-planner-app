@@ -29,7 +29,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Degree Plan</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -1580,7 +1580,7 @@ January - May</string>
                    <second>0</second>
                    <year>2019</year>
                    <month>9</month>
-                   <day>10</day>
+                   <day>9</day>
                   </datetime>
                  </property>
                  <property name="maximumDate">

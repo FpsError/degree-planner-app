@@ -492,7 +492,7 @@
    </palette>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Degree Plan</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -1072,6 +1072,9 @@ QTabBar::tab:pressed {
         </item>
         <item alignment="Qt::AlignmentFlag::AlignHCenter">
          <widget class="QFrame" name="frame_5">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="minimumSize">
            <size>
             <width>1120</width>

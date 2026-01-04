@@ -10,6 +10,14 @@
 #include <QtSql/QSqlDatabase>
 #include <QDebug>
 
+enum AcademicStanding {
+    PROBATION,      // < 2.0
+    SATISFACTORY,   // 2.0 - 3.49
+    GOOD,           // 3.5 - 3.79
+    EXCELLENT,      // 3.8 - 4.0
+    HIGHEST_HONORS  // = 4.0
+};
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -55,11 +63,16 @@ private:
     std::string extractSeason(const std::string& semester);
     void swapTwoItemsInLayout(QVBoxLayout* layout, int index_1, int index_2);
 
+    void updateGPA();
+    AcademicStanding getStandingFromGPA(double gpa);
+    int getCreditsEarned();
     void updateCreditsEarned();
     void updateSemsLeft();
     bool hasSummerSemester(int year);
+    float PointsFromGradeLetters(QString grade);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 };
+
 #endif // MAINWINDOW_H

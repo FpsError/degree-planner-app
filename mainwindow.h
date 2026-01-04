@@ -37,7 +37,7 @@ public:
 
 private slots:   
     //void on_pushButton_clicked();
-    void onAddCourseButtonClicked(QFrame *frame, QLayout *sourceLayout, QString semester);
+    bool onAddCourseButtonClicked(QFrame *frame, QLayout *sourceLayout, QString semester);
     void onFirstAddCourseButtonClicked(QFrame *frame, QLayout *sourceLayout, QFrame *noCoursesFrame, QString semester);
     void onDeleteCourseButtonClicked(QFrame *parent);
     void onEditCourseButtonClicked(QFrame* source, course course_label, QString semester);

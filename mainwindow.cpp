@@ -516,7 +516,7 @@ void MainWindow::createSemesterFrame(int year, QString semester) {
     updateSemesterStatus(frame, semester + QString::number(year));
 }
 
-void MainWindow::onAddCourseButtonClicked(QFrame *source, QLayout *sourceLayout,
+bool MainWindow::onAddCourseButtonClicked(QFrame *source, QLayout *sourceLayout,
                                           QString semester) {
     CourseDetails w(semester, this);
     bool activated = w.exec();
@@ -525,15 +525,15 @@ void MainWindow::onAddCourseButtonClicked(QFrame *source, QLayout *sourceLayout,
         QString course_code = w.getCourseCode();
         addCoursesFromDatabase(source, sourceLayout, course_code);
         updateSemesterStatus(source, semester.remove(' '));
-    }
+        return true;
+    } else return false;
 }
 
 void MainWindow::onFirstAddCourseButtonClicked(QFrame *frame,
                                                QLayout *sourceLayout,
                                                QFrame *noCoursesFrame,
                                                QString semester) {
-    onAddCourseButtonClicked(frame, sourceLayout, semester);
-    noCoursesFrame->hide();
+    if(onAddCourseButtonClicked(frame, sourceLayout, semester)) noCoursesFrame->hide();
 }
 
 void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout,

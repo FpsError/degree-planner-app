@@ -2,7 +2,7 @@
 
 ![Qt Version](https://img.shields.io/badge/Qt-6.9.1-blue)
 ![C++](https://img.shields.io/badge/C++-17-red)
-![Platform](https://img.shields.io/badge/Platform-Windows%20|%20)
+![Platform](https://img.shields.io/badge/platform-windows-blue)
 
 A comprehensive desktop application for university students to plan their academic degree, track progress, and manage course schedules efficiently.
 

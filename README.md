@@ -1,51 +1,52 @@
-# First Level Heading
+# 🎓 Degree Planner - Academic Course Planning Tool
 
-Paragraph.
+![Qt Version](https://img.shields.io/badge/Qt-6.9.1-blue)
+![C++](https://img.shields.io/badge/C++-17-red)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-lightgrey)
 
-## Second Level Heading
+A comprehensive desktop application for university students to plan their academic degree, track progress, and manage course schedules efficiently.
 
-Paragraph.
+## ✨ Features
 
-- bullet
-+ other bullet
-* another bullet
-    * child bullet
+### 📋 Student Profile Management
+- Create student profile with personal information
+- Set graduation year and major
+- Track academic progress over time
 
-1. ordered
-2. next ordered
+### 📊 Academic Overview Dashboard
+- **Real-time GPA calculation** (cumulative)
+- **Credits tracker**: Earned vs. Required credits
+- **Semesters remaining** calculator
 
-### Third Level Heading
+### 🗓️ Semester Planning
+- **Pick course** (if implemented)
+- **Prerequisite validation** - prevents scheduling conflicts
+- **Course catalog** with search and filter capabilities
 
-Some *italic* and **bold** text and `inline code`.
+### 📈 Progress Tracking
+- **Degree completion percentage**
+- **What-if scenarios** - simulate grade changes
 
-An empty line starts a new paragraph.
+### 🔒 Data Management
+- **Local SQLite database** - no internet required
+- **Multiple profile support**
 
-Use two spaces at the end  
-to force a line break.
+## 🖼️ Screenshots
 
-A horizontal ruler follows:
+| Login & Profile | Dashboard View | Course Planning |
+|----------------|----------------|-----------------|
+| ![Login](docs/images/login.png) | ![Dashboard](docs/images/dashboard.png) | ![Planning](docs/images/planning.png) |
 
----
+## 🚀 Installation
 
-Add links inline like [this link to the Qt homepage](https://www.qt.io),
-or with a reference like [this other link to the Qt homepage][1].
+### Windows Users
+1. Download the latest release from [Releases](#)
+2. Run `DegreePlanner-Setup.exe`
+3. Follow the installation wizard
 
-    Add code blocks with
-    four spaces at the front.
-
-> A blockquote
-> starts with >
->
-> and has the same paragraph rules as normal text.
-
-First Level Heading in Alternate Style
-======================================
-
-Paragraph.
-
-Second Level Heading in Alternate Style
----------------------------------------
-
-Paragraph.
-
-[1]: https://www.qt.io
+### macOS Users
+```bash
+# Download the DMG file
+# Double-click to mount
+# Drag to Applications folder

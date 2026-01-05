@@ -4,7 +4,7 @@
 ![C++](https://img.shields.io/badge/C++-17-red)
 ![Platform](https://img.shields.io/badge/platform-windows-blue)
 
-A desktop application built with Qt C++ to help students plan their degree by tracking courses, GPA, credits earned, and credits left.
+A desktop application built with Qt C++ to help students plan their degree by tracking courses, GPA, credits earned, and credits left. For now, the database has only the courses in Al Akhawayn University.
 
 ## ✨ Features
 

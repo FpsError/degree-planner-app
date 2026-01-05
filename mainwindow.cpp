@@ -19,20 +19,17 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tabWidget->setTabVisible(2, 0);
     ui->tabWidget->setTabVisible(3, 0);
     ui->frame_5->setVisible(0);
-    QPixmap pix("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
-                "trending.png");
+    QPixmap pix(":icons/trending.png");
     ui->icon_cgpa->setPixmap(pix);
 
-    QPixmap pix1(
-        "C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/book.png");
+    QPixmap pix1(":icons/book.png");
     ui->icon_credits->setPixmap(pix1);
 
-    QPixmap pix2("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
-                 "calendar.png");
+    QPixmap pix2(":/icons/calendar.png");
     ui->icon_semesters->setPixmap(pix2);
 
     QPixmap pix3(
-        "C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/target.png");
+        ":icons/target.png");
     ui->icon_track->setPixmap(pix3);
 
     ui->verticalLayout_12->setObjectName("semesetersLayout");
@@ -295,8 +292,7 @@ void MainWindow::createSemesterFrame(QHBoxLayout* yearFrame, int year, QString s
 
     // Elements
     QLabel *icon = new QLabel();
-    QPixmap pix4("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
-                 "closed_book.png");
+    QPixmap pix4(":icons/closed_book.png");
     icon->setPixmap(pix4);
     icon->setAlignment(Qt::AlignCenter);
     QLabel *textLabel = new QLabel();
@@ -454,8 +450,7 @@ void MainWindow::createSemesterFrame(int year, QString semester) {
 
     // Elements
     QLabel *icon = new QLabel();
-    QPixmap pix4("C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/"
-                 "closed_book.png");
+    QPixmap pix4(":icons/closed_book.png");
     icon->setPixmap(pix4);
     icon->setAlignment(Qt::AlignCenter);
     QLabel *textLabel = new QLabel();
@@ -599,7 +594,7 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout,
     }
     )");
     QPixmap edit_button_icon(
-        "C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/edit.png");
+        ":icons/edit.png");
     edit_button->setIcon(edit_button_icon);
     edit_button->setHidden(1);
 
@@ -622,7 +617,7 @@ void MainWindow::addCoursesFromDatabase(QFrame *source, QLayout *sourceLayout,
     }
     )");
     QPixmap delete_button_icon(
-        "C:/Users/FpsError/Documents/QtDesignStudio/degreePlan/icons/delete.png");
+        ":icons/delete.png");
     delete_button->setIcon(delete_button_icon);
     delete_button->setHidden(1);
 

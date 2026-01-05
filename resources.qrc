@@ -1,5 +1,13 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/app-icon.ico</file>
+        <file>icons/book.png</file>
+        <file>icons/calendar.png</file>
+        <file>icons/closed_book.png</file>
+        <file>icons/delete.png</file>
+        <file>icons/Drop-down-arrow-icon-rounded.png</file>
+        <file>icons/edit.png</file>
+        <file>icons/target.png</file>
+        <file>icons/trending.png</file>
     </qresource>
 </RCC>

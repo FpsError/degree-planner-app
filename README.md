@@ -35,7 +35,11 @@ A desktop application built with Qt C++ to help students plan their degree by tr
 
 | Login & Profile | Dashboard View | Course Planning |
 |----------------|----------------|-----------------|
+<<<<<<< HEAD
 | ![Login](/images/login.png) | ![Dashboard](/images/dashboard.png) | ![Planning](/images/planning.png) |
+=======
+| ![Login](images/login.png) | ![Dashboard](docs/images/dashboard.png) | ![Planning](docs/images/planning.png) |
+>>>>>>> 02943389235f984997a4ed0ac66492a1609ed4a1
 
 ## 🚀 Installation (Windows)
 1. Download the ZIP file and extract it.

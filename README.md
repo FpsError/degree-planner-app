@@ -37,15 +37,6 @@ A desktop application built with Qt C++ to help students plan their degree by tr
 |----------------|----------------|-----------------|
 | ![Login](docs/images/login.png) | ![Dashboard](docs/images/dashboard.png) | ![Planning](docs/images/planning.png) |
 
-## 🚀 Installation
-
-### Windows Users
-1. Download the latest release from [Releases](#)
-2. Run `DegreePlanner-Setup.exe`
-3. Follow the installation wizard
-
-### macOS Users
-```bash
-# Download the DMG file
-# Double-click to mount
-# Drag to Applications folder
+## 🚀 Installation (Windows)
+1. Download the ZIP file and extract it.
+2. Run `degreePlan.exe` to start the application.
